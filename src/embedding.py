@@ -2,18 +2,22 @@ import os
 import json
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from langchain_openai import OpenAIEmbeddings
+from dotenv import load_dotenv
+
+# Load environment variables (for OPENAI_API_KEY)
+load_dotenv()
 
 def load_chunks(json_path: str):
     """Loads text chunks from a JSON file."""
     with open(json_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def generate_embeddings(texts: list[str], model_name='all-MiniLM-L6-v2') -> np.ndarray:
-    """Generates embeddings using a pre-trained SentenceTransformer."""
-    model = SentenceTransformer(model_name)
-    embeddings = model.encode(texts, show_progress_bar=True)
-    return np.array(embeddings)
+def generate_embeddings(texts: list[str]) -> np.ndarray:
+    """Generates embeddings using OpenAI's text-embedding-3-small API."""
+    model = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = model.embed_documents(texts)
+    return np.array(embeddings, dtype=np.float32)
 
 def save_faiss_index(embeddings: np.ndarray, output_path: str):
     """Saves normalized embeddings to a FAISS index file using cosine similarity."""
