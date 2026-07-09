@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://indian-traffic-rules-assistant.onrender.com';
 
 const chatContainer = document.getElementById('chatContainer');
 const queryInput = document.getElementById('queryInput');
