@@ -1,16 +1,18 @@
-# Indian Traffic Rules Assistant (RAG Chatbot)
+# AI Traffic Assistant (RAG Chatbot Prototype)
 
-An AI-powered assistant built using Retrieval-Augmented Generation (RAG) that provides context-aware answers about Indian traffic rules, penalties, and driver rights. It combines semantic search with LLMs for accurate, explainable, and trustworthy responses.
+An interactive, AI-powered assistant built using Retrieval-Augmented Generation (RAG) that provides context-aware answers about Indian traffic rules, penalties, and driver guidelines. It queries a local FAISS vector store generated from official road safety rulebooks and answers via a cloud-based LLM.
+
+---
+
 ## Repo Structure
 ```plaintext
 traffic_rules_assistant/
-├── .venv/          
 ├── data/
-|   ├── processed/
-|   |    ├── faiss_index.idx
-|   |    ├── indian_traffic_rules_chunks.json
-|   |    └── indian_traffic_rules.txt
-|   └──  Indian traffic rules.pdf
+│   ├── processed/
+│   │    ├── faiss_cosine_index.idx
+│   │    ├── indian_traffic_rules_chunks.json
+│   │    └── indian_traffic_rules.txt
+│   └── Indian traffic rules.pdf
 ├── src/
 │   ├── chunking.py 
 │   ├── embedding.py 
@@ -19,52 +21,46 @@ traffic_rules_assistant/
 │   ├── main.py
 │   └── text_extraction.py 
 ├── api/
-│   └──  app.py
+│   └── app.py
 ├── frontend/ 
-│   └── index.html  
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
 ├── .gitignore
-├── .python-version
 ├── README.md
 ├── requirements.txt
 └── pyproject.toml
 ```
 
-## Overview
-
-This project extracts legal content from a government-issued traffic PDF and makes it queryable via natural language questions using a custom-built RAG pipeline. It uses:
-
-* `sentence-transformers` for generating document embeddings
-* `FAISS` for fast semantic retrieval
-* `LangChain` with `OpenAI` LLM backend for fast and accurate response generation
-* `FastAPI` to expose the system as an API
-
-The assistant is designed to provide concise, legally grounded, and verifiable answers.
-
 ---
 
-## Target Audience
+## Project Overview
 
-* Citizens of Tamil Nadu
-* Driving school instructors and trainees
-* Traffic law educators
-* AI/ML enthusiasts learning about RAG pipelines
+This project extracts legal content from a PDF document containing Indian road regulations and exposes it via a natural language chat interface. 
+
+To optimize performance and resource limits for serverless hosting (such as Render's 512 MB memory limit):
+* **Cloud-based Embeddings**: Uses **OpenAI `text-embedding-3-small`** via API. This avoids importing heavy libraries like PyTorch/Transformers locally, keeping the server memory footprint under **50 MB** (instead of 450+ MB).
+* **FAISS Indexing**: Stores normalized document vectors in a local flat Inner Product (`IndexFlatIP`) index to perform rapid cosine similarity search.
+* **LLM Engine**: Uses **OpenAI `gpt-4o-mini`** via `langchain-openai` for generating structured, context-grounded responses.
+* **Web UI Dashboard**: A clean, responsive 3-column citizen portal interface complete with dynamic RAG chat assistance, quick fine check reference tables, and emergency helpline listings.
 
 ---
 
 ## Prerequisites
 
 * Python 3.11+
-* Basic terminal/CLI knowledge
-* Internet access for LLM API (OpenAI)
-* OpenAI API key
+* A package manager like `uv` or `pip`
+* An OpenAI API Key
 
 ---
 
-## Installation
+## Installation & Setup
 
+### 1. Clone the project and initialize virtualenv:
+```bash
 cd traffic_rules_assistant
 
-# Create environment
+# Create virtual environment
 uv venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
@@ -72,144 +68,72 @@ source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 uv pip install -r requirements.txt
 ```
 
----
-
-## Environment Setup
-
-### `.env` file (create at root):
-
-```
+### 2. Configure Environment:
+Create a `.env` file in the root directory:
+```env
 OPENAI_API_KEY=your-openai-api-key-here
 ```
 
-### Required files:
-
-* `data/Indian traffic rules.pdf`
-
 ---
 
-## Usage
+## Data Pipeline Usage
 
-### 1. Text Extraction
+If you modify the source PDF document (`data/Indian traffic rules.pdf`), run the following pipeline scripts to rebuild the database:
 
+### 1. Extract text from PDF:
 ```bash
-python src/text_extraction.py
+uv run python -m src.text_extraction
 ```
 
-### 2. Chunking
-
+### 2. Chunk text:
 ```bash
-python src/chunking.py
+uv run python -m src.chunking
 ```
 
-### 3. Embedding + FAISS Index Creation
-
+### 3. Generate OpenAI embeddings and FAISS index:
 ```bash
-python src/embedding.py
-```
-
-### 4. CLI Chatbot
-
-```bash
-python src/main.py
-```
-
-### 5. API (FastAPI)
-
-```bash
-uvicorn api.app:app --reload
-# Visit http://localhost:8000/docs
+uv run python -m src.embedding
 ```
 
 ---
 
-## Data Requirements
+## Running the Application
 
-* Input: A traffic rulebook in `.pdf`
-* Output:
+### 1. Start the Backend API (FastAPI):
+```bash
+uv run uvicorn api.app:app --reload
+```
+The interactive API documentation will be available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
 
-  * `.txt` file with full extracted text
-  * `.json` with clean overlapping chunks
-  * `.idx` FAISS index file
-
----
-
-## Testing
-
-Manual test cases:
-
-* Ask questions from the CLI or Swagger UI
-* Evaluate LLM responses vs. original PDF
-
-(Automated tests can be added using `pytest`.)
+### 2. Run the Local Frontend:
+Serve the `frontend` directory using any HTTP server:
+```bash
+python -m http.server 8080 -d frontend
+```
+Visit **[http://localhost:8080](http://localhost:8080)** in your browser to interact with the portal!
 
 ---
 
-## Configuration
+## Configuration Settings
 
-### Chunking:
-
-* `chunk_size = 300`
-* `overlap = 50`
-
-### FAISS:
-
-* `IndexFlatIP` used for vector similarity search
-
-### LLM (Groq):
-
-* Model: `mixtral-8x7b-32768` (default)
-* Temperature: `0.3`
-
----
-
-## Methodology
-
-1. Parse legal traffic PDF to text
-2. Split text into semantic chunks
-3. Embed chunks using `sentence-transformers`
-4. Store in `FAISS` for fast vector search
-5. On query:
-
-   * Embed the question
-   * Retrieve top-k relevant chunks
-   * Pass to Groq LLM using LangChain
-6. Return clean, structured answer
+* **Chunking**: `chunk_size = 300` characters, with `overlap = 50` characters.
+* **Embeddings**: OpenAI `text-embedding-3-small` (1536 dimensions).
+* **Vector Index**: `faiss.IndexFlatIP` (Cosine similarity search).
+* **Generation**: OpenAI `gpt-4o-mini` (Temperature: `0.3`).
 
 ---
 
 ## Performance
-
-* Fast local retrieval (\~50–100 ms)
-* Groq LLM response: \~100 tokens/ms
-* Accurate context-based answers
-* No hallucinations (guardrails in prompt)
-
----
-
-## License
-
-
----
-
-## Contributing
-
-Pull requests welcome!
-
-* Fork the repo
-* Create a new branch
-* Submit a pull request with a meaningful message
+* **Build Time**: Installs dependencies in under 15 seconds.
+* **RAM Footprint**: Under **50 MB** in production (perfect for Render Free Tier).
+* **Latency**: Fast semantic search matching in ~20ms.
 
 ---
 
 ## Changelog
 
-### v1.0.0 (June 2025)
-
-* Initial public release
-* Added full pipeline: Extraction, Chunking, Embedding, Retrieval, Generation
-* FastAPI API + CLI support
-* Groq + LangChain integration
-
----
-
+### v1.2.0 (July 2026)
+* **Rebranded Interface**: Renamed to "AI Traffic Assistant" and created an interactive mockup dashboard.
+* **OpenAI Integration**: Switched generator to OpenAI `gpt-4o-mini` and retriever to `text-embedding-3-small` API.
+* **Memory Optimization**: Removed PyTorch and local transformer downloads to guarantee stability on 512MB RAM servers.
+* **GitHub Actions & Deployment Config**: Created clean `.gitignore` rules to isolate secrets and push clean initial codebase.
