@@ -636,37 +636,43 @@ body {
 /* Footer Styling */
 .govt-footer {
     background-color: #1e2022;
-    color: #ffffff;
-    text-align: center;
+    color: #adb5bd;
+    padding: 14px 30px;
     flex-shrink: 0;
+    font-size: 0.72rem;
+    border-top: 1px solid #2c3033;
 }
 
-.footer-top {
-    background-color: #2c3033;
-    padding: 14px 30px;
-    font-size: 0.75rem;
-    line-height: 1.5;
-    color: #cfd4da;
-    border-bottom: 1px solid #3d4348;
-}
-
-.footer-bottom {
-    padding: 14px 30px;
+.footer-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.72rem;
-    color: #adb5bd;
+}
+
+.footer-left {
+    text-align: left;
+}
+
+.footer-left span {
+    color: #ffffff;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.footer-left p {
+    color: #888d93;
+    font-size: 0.68rem;
 }
 
 .footer-links a {
     color: #adb5bd;
     text-decoration: none;
+    transition: color 0.15s ease;
 }
 
 .footer-links a:hover {
     color: #ffffff;
-    text-decoration: underline;
 }
 
 /* Custom Scrollbars */
