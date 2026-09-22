@@ -1,4 +1,4 @@
-# AI Traffic Assistant (RAG Chatbot Prototype)
+# AI Traffic Assistant 
 
 An interactive, AI-powered assistant built using Retrieval-Augmented Generation (RAG) that provides context-aware answers about Indian traffic rules, penalties, and driver guidelines. It queries a local FAISS vector store generated from official road safety rulebooks and answers via a cloud-based LLM.
 
